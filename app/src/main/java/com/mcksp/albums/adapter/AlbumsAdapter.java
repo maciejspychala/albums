@@ -4,10 +4,12 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.mcksp.albums.R;
 import com.mcksp.albums.models.Album;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
@@ -34,6 +36,7 @@ public class AlbumsAdapter extends RecyclerView.Adapter<AlbumsAdapter.AlbumViewH
     public void onBindViewHolder(AlbumViewHolder holder, int position) {
         final Album album = albums.get(position);
         holder.albumTitle.setText(album.title);
+        Picasso.get().load(album.albumArt).placeholder(R.mipmap.ic_launcher).into(holder.albumArt);
         holder.view.setOnClickListener(v -> onAlbumClick.onAlbumClicked(album));
 
     }
@@ -46,11 +49,13 @@ public class AlbumsAdapter extends RecyclerView.Adapter<AlbumsAdapter.AlbumViewH
     public static class AlbumViewHolder extends RecyclerView.ViewHolder {
         View view;
         TextView albumTitle;
+        ImageView albumArt;
 
         public AlbumViewHolder(View itemView) {
             super(itemView);
             view = itemView;
             albumTitle = itemView.findViewById(R.id.album_title);
+            albumArt = itemView.findViewById(R.id.album_art);
         }
 
     }
