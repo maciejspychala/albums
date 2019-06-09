@@ -51,7 +51,6 @@ public class BrowseAlbumsFragment extends Fragment implements AlbumsAdapter.OnAl
         super.onViewCreated(view, savedInstanceState);
         recyclerView = view.findViewById(R.id.albums_list);
         recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 1));
         recyclerView.setAdapter(new AlbumsAdapter(albums, this));
     }
 
