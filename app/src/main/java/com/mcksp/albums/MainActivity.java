@@ -8,7 +8,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-import com.mcksp.albums.browseAlbums.BrowseAlbumsFragment;
+import com.mcksp.albums.fragments.BrowseAlbumsFragment;
 
 public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_CODE = 1;

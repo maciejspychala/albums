@@ -1,4 +1,4 @@
-package com.mcksp.albums.browseAlbums;
+package com.mcksp.albums.fragments;
 
 import android.database.Cursor;
 import android.os.Bundle;
@@ -6,9 +6,8 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.GridLayoutManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,10 +23,8 @@ import java.util.ArrayList;
 public class BrowseAlbumsFragment extends Fragment implements AlbumsAdapter.OnAlbumClick {
 
     private ArrayList<Album> albums = new ArrayList<>();
+    private Album choosedAlbum;
     private RecyclerView recyclerView;
-
-    public BrowseAlbumsFragment() {
-    }
 
     public static BrowseAlbumsFragment newInstance() {
         BrowseAlbumsFragment fragment = new BrowseAlbumsFragment();
@@ -74,6 +71,12 @@ public class BrowseAlbumsFragment extends Fragment implements AlbumsAdapter.OnAl
 
     @Override
     public void onAlbumClicked(Album album) {
-        Log.d("ALBUM", album.title);
+        choosedAlbum = album;
+
+        SearchAlbumsFragment fragment = SearchAlbumsFragment.newInstance(album);
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.replace(R.id.fragment_container, fragment);
+        transaction.addToBackStack(SearchAlbumsFragment.TAG);
+        transaction.commit();
     }
 }
