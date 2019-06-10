@@ -10,12 +10,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
 
 import com.mcksp.albums.R;
 import com.mcksp.albums.adapter.AlbumsAdapter;
 import com.mcksp.albums.models.Album;
 import com.mcksp.albums.rest.SpotifyAuthService;
 import com.mcksp.albums.rest.SpotifyService;
+import com.mcksp.albums.rest.models.Record;
 import com.mcksp.albums.rest.models.SearchData;
 
 import java.io.IOException;
@@ -32,6 +34,7 @@ public class SearchAlbumsFragment extends Fragment implements AlbumsAdapter.OnAl
     RecyclerView recyclerView;
     AlbumsAdapter adapter;
     ArrayList<Album> albums = new ArrayList<>();
+    ImageView search;
 
     private Album albumToChange;
 
@@ -61,10 +64,23 @@ public class SearchAlbumsFragment extends Fragment implements AlbumsAdapter.OnAl
         recyclerView = view.findViewById(R.id.album_search_list);
         recyclerView.setAdapter(adapter);
         recyclerView.setHasFixedSize(true);
-        SpotifyService.getInstance().getSongs("Bearer " + SpotifyAuthService.token, formatString(albumToChange.title), "album", 20, 0).enqueue(new Callback<SearchData>() {
+        search = view.findViewById(R.id.search_button);
+        search.setOnClickListener(v -> fetchAlbums(title.getText().toString()));
+        fetchAlbums(albumToChange.title);
+    }
+
+    private void fetchAlbums(String albumName) {
+        SpotifyService.getInstance().getSongs("Bearer " + SpotifyAuthService.token, formatString(albumName), "album", 20, 0).enqueue(new Callback<SearchData>() {
             @Override
-            public void onResponse(Call<SearchData> call, Response<SearchData> response) {
-                Log.d("seidwa", response.body().data.records.get(0).getBigImageUrl());
+            public void onResponse(Call<SearchData> call, Response<SearchData> data) {
+                if (data != null && data.body() != null && data.body().data.records != null) {
+                    albums.clear();
+                    for (Record album : data.body().data.records) {
+                        Album a = new Album(album.name, album.type, album.uri, album.getImageUrl(), album.getBigImageUrl(), albums.size());
+                        albums.add(a);
+                    }
+                    adapter.notifyDataSetChanged();
+                }
             }
 
             @Override
@@ -73,7 +89,6 @@ public class SearchAlbumsFragment extends Fragment implements AlbumsAdapter.OnAl
             }
         });
     }
-
     @Override
     public void onAlbumClicked(Album album) {
         Log.d("SEARCH", album.title);
