@@ -14,8 +14,16 @@ import android.widget.EditText;
 import com.mcksp.albums.R;
 import com.mcksp.albums.adapter.AlbumsAdapter;
 import com.mcksp.albums.models.Album;
+import com.mcksp.albums.rest.SpotifyAuthService;
+import com.mcksp.albums.rest.SpotifyService;
+import com.mcksp.albums.rest.models.SearchData;
 
+import java.io.IOException;
 import java.util.ArrayList;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class SearchAlbumsFragment extends Fragment implements AlbumsAdapter.OnAlbumClick {
 
@@ -53,6 +61,17 @@ public class SearchAlbumsFragment extends Fragment implements AlbumsAdapter.OnAl
         recyclerView = view.findViewById(R.id.album_search_list);
         recyclerView.setAdapter(adapter);
         recyclerView.setHasFixedSize(true);
+        SpotifyService.getInstance().getSongs("Bearer " + SpotifyAuthService.token, formatString(albumToChange.title), "album", 20, 0).enqueue(new Callback<SearchData>() {
+            @Override
+            public void onResponse(Call<SearchData> call, Response<SearchData> response) {
+                Log.d("seidwa", response.body().data.records.get(0).getBigImageUrl());
+            }
+
+            @Override
+            public void onFailure(Call<SearchData> call, Throwable t) {
+
+            }
+        });
     }
 
     @Override
