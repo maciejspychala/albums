@@ -73,7 +73,6 @@ public class DatabaseHelper {
         values.put("album_id", album.id);
         values.put("_data", filename);
 
-        ContentValues values2 = new ContentValues();
         Uri num_updates = context.getContentResolver().insert(albumArtUri, values);
         Log.d("NUM UPDATES", num_updates.toString());
     }
