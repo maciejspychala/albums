@@ -1,11 +1,17 @@
 package com.mcksp.albums.fragments;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,13 +20,15 @@ import android.widget.ImageView;
 
 import com.mcksp.albums.R;
 import com.mcksp.albums.adapter.AlbumsAdapter;
+import com.mcksp.albums.helpers.DatabaseHelper;
 import com.mcksp.albums.models.Album;
 import com.mcksp.albums.rest.SpotifyAuthService;
 import com.mcksp.albums.rest.SpotifyService;
 import com.mcksp.albums.rest.models.Record;
 import com.mcksp.albums.rest.models.SearchData;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 import retrofit2.Call;
@@ -31,10 +39,12 @@ public class SearchAlbumsFragment extends Fragment implements AlbumsAdapter.OnAl
 
     public static final String TAG = SearchAlbumsFragment.class.getSimpleName();
     private static final String ALBUM_KEY = "ALBUM_KEY";
+    private static final int PERMISSION_REQUEST_CODE = 1;
     RecyclerView recyclerView;
     AlbumsAdapter adapter;
     ArrayList<Album> albums = new ArrayList<>();
     ImageView search;
+    String url;
 
     private Album albumToChange;
 
@@ -73,7 +83,7 @@ public class SearchAlbumsFragment extends Fragment implements AlbumsAdapter.OnAl
         SpotifyService.getInstance().getSongs("Bearer " + SpotifyAuthService.token, formatString(albumName), "album", 20, 0).enqueue(new Callback<SearchData>() {
             @Override
             public void onResponse(Call<SearchData> call, Response<SearchData> data) {
-                if (data != null && data.body() != null && data.body().data.records != null) {
+                if (data.body() != null && data.body().data.records != null) {
                     albums.clear();
                     for (Record album : data.body().data.records) {
                         Album a = new Album(album.name, album.type, album.uri, album.getImageUrl(), album.getBigImageUrl(), albums.size());
@@ -91,7 +101,43 @@ public class SearchAlbumsFragment extends Fragment implements AlbumsAdapter.OnAl
     }
     @Override
     public void onAlbumClicked(Album album) {
-        Log.d("SEARCH", album.title);
+        url = album.bigAlbumArt;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (getContext().checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
+                setAlbumArt();
+            } else {
+                ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
+            }
+        } else {
+            setAlbumArt();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST_CODE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    setAlbumArt();
+                }
+                break;
+        }
+    }
+
+    private void setAlbumArt() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        LayoutInflater inflater = getActivity().getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_album_cover, null);
+        Picasso.get().load(url).into((ImageView) dialogView.findViewById(R.id.cover_art_preview));
+        builder.setView(dialogView);
+        builder.setPositiveButton("SET", (dialog, which) -> {
+            Picasso.get()
+                    .load(url)
+                    .into(new DownloadTarget());
+            dialog.dismiss();
+        });
+        builder.setNegativeButton("CANCEL", null);
+        builder.show();
     }
 
     private static String formatString(String str) {
@@ -99,5 +145,24 @@ public class SearchAlbumsFragment extends Fragment implements AlbumsAdapter.OnAl
         str = str.replaceAll("\\[.*?\\] ?", "");
         str = str.replaceAll("\\<.*?\\> ?", "");
         return str.trim();
+    }
+
+    private class DownloadTarget implements Target {
+
+        @Override
+        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+            DatabaseHelper.setAlbumCover(getContext(), bitmap, albumToChange);
+            getActivity().getSupportFragmentManager().popBackStack();
+        }
+
+        @Override
+        public void onBitmapFailed(Exception e, Drawable errorDrawable) {
+
+        }
+
+        @Override
+        public void onPrepareLoad(Drawable placeHolderDrawable) {
+
+        }
     }
 }

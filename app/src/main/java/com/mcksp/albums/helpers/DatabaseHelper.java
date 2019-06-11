@@ -1,10 +1,22 @@
 package com.mcksp.albums.helpers;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Log;
+
+import com.mcksp.albums.models.Album;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Calendar;
 
 public class DatabaseHelper {
     public static Cursor getAlbumsCursor(Context context, long id) {
@@ -24,5 +36,45 @@ public class DatabaseHelper {
 
     public static Cursor getAlbumsCursor(Context context) {
         return getAlbumsCursor(context, -1);
+    }
+
+    public static void setAlbumCover(Context context, Bitmap bitmap, Album album) {
+        Uri albumArtUri = Uri.parse("content://media/external/audio/albumart");
+
+        int lol = context.getContentResolver().delete(ContentUris.withAppendedId(albumArtUri, album.id), null, null);
+        Log.d("DELETED", String.valueOf(lol));
+
+
+        String dirName = Environment.getExternalStorageDirectory().getPath() + "/albumthumbs/";
+        String filename = dirName + Calendar.getInstance().getTimeInMillis();
+        File dir = new File(dirName);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        File file = new File(filename);
+        FileOutputStream out = null;
+        try {
+            out = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (out != null) {
+                    out.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+        ContentValues values = new ContentValues();
+        values.put("album_id", album.id);
+        values.put("_data", filename);
+
+        ContentValues values2 = new ContentValues();
+        Uri num_updates = context.getContentResolver().insert(albumArtUri, values);
+        Log.d("NUM UPDATES", num_updates.toString());
     }
 }
