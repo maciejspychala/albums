@@ -6,13 +6,19 @@ import android.os.Build;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.appcompat.app.AppCompatActivity;
-import android.os.Bundle;
+import androidx.room.Room;
 
+import android.os.Bundle;
+import android.util.Log;
+
+import com.mcksp.albums.db.AppDatabase;
+import com.mcksp.albums.db.FetchedAlbum;
 import com.mcksp.albums.fragments.BrowseAlbumsFragment;
 import com.mcksp.albums.rest.SpotifyAuthService;
 
 public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_CODE = 1;
+    AppDatabase db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +32,9 @@ public class MainActivity extends AppCompatActivity {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
             }
         }
+
+        db = Room.databaseBuilder(getApplicationContext(),
+                AppDatabase.class, "fetched_album").allowMainThreadQueries().build();
     }
 
     private void showFragment() {
