@@ -31,6 +31,14 @@
 
     </RelativeLayout>
 
+    <TextView
+        android:gravity="center"
+        android:visibility="gone"
+        android:id="@+id/no_albums"
+        android:text="@string/no_albums_found"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
 
     <com.mcksp.albums.widgets.AutoSpanRecyclerView
         android:id="@+id/album_search_list"

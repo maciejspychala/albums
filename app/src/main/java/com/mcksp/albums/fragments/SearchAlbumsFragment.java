@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.mcksp.albums.R;
 import com.mcksp.albums.adapter.AlbumsAdapter;
@@ -44,6 +45,7 @@ public class SearchAlbumsFragment extends Fragment implements AlbumsAdapter.OnAl
     AlbumsAdapter adapter;
     ArrayList<Album> albums = new ArrayList<>();
     ImageView search;
+    TextView noAlbums;
     String url;
 
     private Album albumToChange;
@@ -74,6 +76,7 @@ public class SearchAlbumsFragment extends Fragment implements AlbumsAdapter.OnAl
         recyclerView = view.findViewById(R.id.album_search_list);
         recyclerView.setAdapter(adapter);
         recyclerView.setHasFixedSize(true);
+        noAlbums = view.findViewById(R.id.no_albums);
         search = view.findViewById(R.id.search_button);
         search.setOnClickListener(v -> fetchAlbums(title.getText().toString()));
         fetchAlbums(albumToChange.title);
@@ -89,6 +92,7 @@ public class SearchAlbumsFragment extends Fragment implements AlbumsAdapter.OnAl
                         Album a = new Album(album.name, album.type, album.uri, album.getImageUrl(), album.getBigImageUrl(), albums.size());
                         albums.add(a);
                     }
+                    noAlbums.setVisibility(albums.size() > 0 ? View.GONE : View.VISIBLE);
                     adapter.notifyDataSetChanged();
                 }
             }
