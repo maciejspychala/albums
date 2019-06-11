@@ -38,9 +38,27 @@ public class BrowseAlbumsFragment extends Fragment implements AlbumsAdapter.OnAl
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        refreshChoosedAlbum();
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_browse_albums, container, false);
+    }
+
+    private void refreshChoosedAlbum() {
+        if (choosedAlbum != null) {
+            Cursor cursor = DatabaseHelper.getAlbumsCursor(getContext(), choosedAlbum.id);
+            if (cursor.moveToFirst()) {
+                String albumArt = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+                choosedAlbum.albumArt = "file://" + albumArt;
+                recyclerView.getAdapter().notifyDataSetChanged();
+            }
+        }
+        choosedAlbum = null;
     }
 
     @Override
