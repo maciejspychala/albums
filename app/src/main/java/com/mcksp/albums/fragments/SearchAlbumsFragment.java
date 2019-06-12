@@ -18,6 +18,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.mcksp.albums.R;
 import com.mcksp.albums.adapter.AlbumsAdapter;
@@ -99,7 +100,7 @@ public class SearchAlbumsFragment extends Fragment implements AlbumsAdapter.OnAl
 
             @Override
             public void onFailure(Call<SearchData> call, Throwable t) {
-
+                Toast.makeText(getContext(), getString(R.string.cannot_connect), Toast.LENGTH_SHORT);
             }
         });
     }

@@ -3,28 +3,41 @@ package com.mcksp.albums.fragments;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import androidx.room.Room;
 
 import com.mcksp.albums.R;
 import com.mcksp.albums.adapter.AlbumsAdapter;
+import com.mcksp.albums.db.AppDatabase;
+import com.mcksp.albums.db.FetchedAlbum;
 import com.mcksp.albums.helpers.DatabaseHelper;
 import com.mcksp.albums.models.Album;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class BrowseAlbumsFragment extends Fragment implements AlbumsAdapter.OnAlbumClick {
 
     private ArrayList<Album> albums = new ArrayList<>();
+    private ArrayList<Album> displayedAlbums = new ArrayList<>();
+
     private Album choosedAlbum;
     private RecyclerView recyclerView;
+    AppDatabase db;
+    List<FetchedAlbum> fetchedAlbums;
+    Button filter;
+    AlbumsAdapter adapter;
+    boolean filtering = false;
 
     public static BrowseAlbumsFragment newInstance() {
         BrowseAlbumsFragment fragment = new BrowseAlbumsFragment();
@@ -34,6 +47,10 @@ public class BrowseAlbumsFragment extends Fragment implements AlbumsAdapter.OnAl
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        db = Room.databaseBuilder(getContext(),
+                AppDatabase.class, "fetched_album").allowMainThreadQueries().build();
+        db.albumDao().nukeTable();
+        fetchedAlbums = db.albumDao().getAll();
         readAlbumsData();
     }
 
@@ -54,7 +71,16 @@ public class BrowseAlbumsFragment extends Fragment implements AlbumsAdapter.OnAl
             Cursor cursor = DatabaseHelper.getAlbumsCursor(getContext(), choosedAlbum.id);
             if (cursor.moveToFirst()) {
                 String albumArt = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
-                choosedAlbum.albumArt = "file://" + albumArt;
+                String newAlbumArt = "file://" + albumArt;
+                if (!newAlbumArt.equals(choosedAlbum.albumArt)) {
+                    FetchedAlbum f = new FetchedAlbum();
+                    f.id = choosedAlbum.id;
+                    if (!isChanged(choosedAlbum)) {
+                        db.albumDao().insertAll(f);
+                        fetchedAlbums.add(f);
+                    }
+                }
+                choosedAlbum.albumArt = newAlbumArt;
                 recyclerView.getAdapter().notifyDataSetChanged();
             }
         }
@@ -66,7 +92,41 @@ public class BrowseAlbumsFragment extends Fragment implements AlbumsAdapter.OnAl
         super.onViewCreated(view, savedInstanceState);
         recyclerView = view.findViewById(R.id.albums_list);
         recyclerView.setHasFixedSize(true);
-        recyclerView.setAdapter(new AlbumsAdapter(albums, this));
+        adapter = new AlbumsAdapter(albums, this);
+        recyclerView.setAdapter(adapter);
+        filter = view.findViewById(R.id.filter);
+        filter.setText(filtering ? getText(R.string.display_all) : getText(R.string.filter));
+        filter.setOnClickListener(e -> {
+            filtering = !filtering;
+            filter.setText(filtering ? getText(R.string.display_all) : getText(R.string.filter));
+            filterAlbums();
+        });
+    }
+
+    private boolean isChanged(Album album) {
+        boolean changed = false;
+        for (int i = 0; i < fetchedAlbums.size(); i++) {
+            if (album.id == fetchedAlbums.get(i).id) {
+                changed = true;
+                break;
+            }
+        }
+        return changed;
+    }
+
+
+    private void filterAlbums() {
+        displayedAlbums.clear();
+        for (int i = 0; i < albums.size(); i++) {
+            if (filtering) {
+                if (!isChanged(albums.get(i))) {
+                    displayedAlbums.add(albums.get(i));
+                }
+            } else {
+                displayedAlbums.add(albums.get(i));
+            }
+        }
+        recyclerView.setAdapter(new AlbumsAdapter(displayedAlbums, this));
     }
 
     private void readAlbumsData() {

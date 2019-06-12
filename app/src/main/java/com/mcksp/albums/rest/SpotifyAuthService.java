@@ -1,5 +1,9 @@
 package com.mcksp.albums.rest;
 
+import android.content.Context;
+import android.widget.Toast;
+
+import com.mcksp.albums.R;
 import com.mcksp.albums.rest.models.Token;
 
 import retrofit2.Call;
@@ -11,7 +15,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class SpotifyAuthService {
     public static String token;
 
-    public static void init() {
+    public static void init(Context context) {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://accounts.spotify.com")
                 .addConverterFactory(GsonConverterFactory.create())
@@ -26,7 +30,7 @@ public class SpotifyAuthService {
 
             @Override
             public void onFailure(Call<Token> call, Throwable t) {
-
+                Toast.makeText(context, context.getString(R.string.cannot_connect), Toast.LENGTH_SHORT);
             }
         });
     }

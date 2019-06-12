@@ -5,4 +5,7 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="album_title_hint">album title</string>
     <string name="no_albums_found">no albums found</string>
+    <string name="cannot_connect">Cannot connect to Spotify. Check your Internet connection</string>
+    <string name="filter">filter</string>
+    <string name="display_all">display all</string>
 </resources>

@@ -6,5 +6,5 @@ import androidx.room.PrimaryKey;
 @Entity
 public class FetchedAlbum {
     @PrimaryKey
-    public int id;
+    public long id;
 }
