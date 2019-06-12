@@ -58,6 +58,7 @@ public class BrowseAlbumsFragment extends Fragment implements AlbumsAdapter.OnAl
     public void onResume() {
         super.onResume();
         refreshChoosedAlbum();
+        filterAlbums();
     }
 
     @Override
